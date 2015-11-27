@@ -4,8 +4,8 @@ import lejos.hardware.Sound;
 import lejos.utility.Delay;
 
 public class Localization {
-	public static final int ROTATION_SPEED = 120;
-	private static final double sensordis=12.5;
+	public static final int ROTATION_SPEED = 200;
+	private static final double sensordis=11.6;
 	private int limitdis=32;
 	private Odometer odo;
 	private Navigation navigate;
@@ -19,7 +19,6 @@ public class Localization {
 	}
 	
 	public void doLocalization() {
-		//double [] pos = new double [3];
 		double angleA, angleB, deltaT;
 		angleA=0;
 		angleB=0;
@@ -61,16 +60,14 @@ public class Localization {
 		}
 		// update the odometer position
 		odo.setPosition(new double [] {0.0, 0.0, odo.getAng()+deltaT}, new boolean [] {false,false,true});
-		navigate.turnTo(0,true);
-		Delay.msDelay(1000);
 		
-		navigate.travelTo(10, 10);
-		navigate.setFloat();
+		navigate.travelTo(8, 8);
+		
 		// start rotating and clock all 4 grid lines
 		int count=0;
 		while(count<4){
 			Delay.msDelay(25);
-			navigate.setSpeeds(ROTATION_SPEED, ROTATION_SPEED);
+			navigate.setSpeeds(-ROTATION_SPEED, ROTATION_SPEED);
 			if(detector.getdeltacolor2()>5){
 				Th.add(odo.getAng()-180.0);
 				count++;

@@ -1,7 +1,7 @@
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class Navigation {
-	final static int FAST = 120, SLOW = 60, ACCELERATION = 1500;
+	final static int FAST = 200, SLOW = 100, ACCELERATION = 3000;
 	final static double DEG_ERR = 0.5, CM_ERR = 1.0;
 	private Odometer odometer;
 	private EV3LargeRegulatedMotor leftMotor, rightMotor;
@@ -67,7 +67,10 @@ public class Navigation {
 		if (minAng < 0)
 			minAng += 360.0;
 		this.turnTo(minAng, false);
-		while (Math.abs(x - odometer.getX()) > CM_ERR || Math.abs(y - odometer.getY()) > CM_ERR) {
+		double currX = odometer.getX();
+		double currY = odometer.getY();
+		double distance = Math.sqrt(Math.pow((y - currY), 2) + Math.pow((x - currX), 2));
+		while(Math.sqrt(Math.pow(odometer.getX() - currX, 2) + Math.pow(odometer.getY() - currY, 2)) < distance){
 			this.setSpeeds(FAST, FAST);
 		}
 		this.setSpeeds(0, 0);
@@ -81,10 +84,9 @@ public class Navigation {
 	 * motors when the turn is completed
 	 */
 	public void turnTo(double angle, boolean stop) {
-		double error = angle - this.odometer.getAng();
+		double error = normalize(angle) - this.odometer.getAng();
 		while (Math.abs(error) > DEG_ERR) {
-			error = angle - this.odometer.getAng();
-
+			error = normalize(angle) - this.odometer.getAng();
 			if (error < -180.0) {
 				this.setSpeeds(-SLOW, SLOW);
 			} else if (error < 0.0) {
@@ -101,11 +103,30 @@ public class Navigation {
 		}
 	}
 	
-	/*
-	 * Go foward a set distance in cm
-	 */
-	public void goForward(double distance) {
-		this.travelTo(Math.cos(Math.toRadians(this.odometer.getAng())) * distance, Math.cos(Math.toRadians(this.odometer.getAng())) * distance);
-
+	public void travelBackwards(double distance){
+		double currX, currY;
+		currX = odometer.getX();
+		currY = odometer.getY();
+		while(Math.sqrt(Math.pow(odometer.getX() - currX, 2) + Math.pow(odometer.getY() - currY, 2)) < distance){
+			this.setSpeeds(-FAST,-FAST);}
+		this.setSpeeds(0,0);
+		
 	}
+	
+	public void travelForwards(double distance){
+		double currX, currY;
+		currX = odometer.getX();
+		currY = odometer.getY();
+		while(Math.sqrt(Math.pow(odometer.getX() - currX, 2) + Math.pow(odometer.getY() - currY, 2)) < distance){
+			this.setSpeeds(FAST,FAST);}
+		this.setSpeeds(0,0);
+	}
+	
+	public double normalize(double deg){
+		double normal=deg % 360;
+		if(normal<0)
+			normal+=360;
+		return normal;
+	}
+	
 }

@@ -35,5 +35,9 @@ public class LCDInfo implements TimerListener{
 		LCD.drawInt(((int)(pos[1] * 10))/10, 3, 1);
 		LCD.drawInt((int)pos[2], 3, 2);
 		LCD.drawString("D: "+detector.getdistance(), 0, 3);
+		LCD.drawString("C: "+detector.getcolornumber(), 0, 4);
+//		LCD.drawString("R: "+detector.getcolor1()[0], 0, 4);
+//		LCD.drawString("G: "+detector.getcolor1()[1], 0, 5);
+//		LCD.drawString("B: "+detector.getcolor1()[2], 0, 6);
 	}
 }
