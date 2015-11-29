@@ -40,7 +40,7 @@ public class Search {
 	 * @param flagnum: the amount of target flag
 	 */
 	public void searching(Point2D point1,Point2D point2,Point2D point3,int colornum,int flagnum){
-		odo.setPosition(new double [] {0, 85, 90}, new boolean [] {true,true,true});
+		odo.setPosition(new double [] {point1.getX()-15, point2.getY()-25, 90}, new boolean [] {true,true,true});
 		/**
 		 * check if the enemy zone is in the left or right side of robot, and set sensor rotate "deg" and robot "degrotate" based on that 
 		 */

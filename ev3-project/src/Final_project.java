@@ -44,14 +44,14 @@ public class Final_Project {
 //			Localization localize=new Localization(odo,detector);
 //			localize.doLocalization();
 			
-//			Point2D point1=new Point2D.Double(15,45);
-//			Point2D point2=new Point2D.Double(75,105);
-//			Point2D point3=new Point2D.Double(0,0);
-//			Search search=new Search(odo,detector,arm,sensorMotor);
-//			search.searching(point1, point2, point3, 5, 1);
+			Point2D point1=new Point2D.Double(15,45);
+			Point2D point2=new Point2D.Double(75,105);
+			Point2D point3=new Point2D.Double(0,0);
+			Search search=new Search(odo,detector,arm,sensorMotor);
+			search.searching(point1, point2, point3, 5, 1);
 			
-			test testing=new test(odo,detector,arm);
-			testing.testing();
+//			test testing=new test(odo,detector,arm);
+//			testing.testing();
 			
 		}
 		

@@ -38,7 +38,7 @@ public class Flagcapturer {
 		arm.rotate(-180,true);
 //		arm.setStallThreshold(8, 20);
 		while(!arm.isStalled()){
-			arm.rotate(-6,true);}
+			arm.rotate(-8,true);}
 		arm.rotate(15,true);
 		
 //		arm.rotateTo(-160);
