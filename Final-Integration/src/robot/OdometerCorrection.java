@@ -9,7 +9,7 @@ import lejos.hardware.Sound;
  * coordinates that should represent a continuous line.
  * 
  * @version 3.0
- * @author chouttle
+ * @author Vivien Traineau
  */
 public class OdometerCorrection {
 	private Odometer odo;
@@ -107,7 +107,7 @@ public class OdometerCorrection {
 	 * @param number
 	 * @param range
 	 * @param target
-	 * @return
+	 * @return whether a number is within the range.
 	 */
 	private boolean isInRangeCoo(double number, int range, int target) {
 		if (Math.abs((number % target) - target) < range)
@@ -116,11 +116,11 @@ public class OdometerCorrection {
 	}
 
 	/**
-	 * Function checking if the robot is navigating on a continuous line.
+	 * Function checking if the robot is navigating on a continuous grid line.
 	 * 
 	 * @param xOrY current x or y coordinates of the robot
 	 * @param range small range representing the possible error of the odometer if close to the line
-	 * @return
+	 * @return whether the robot is navigating continuously on a grid line
 	 */
 	private boolean isOnALine(double xOrY, int range) {
 		if (xOrY % distBtwLines < distBtwLines / 2)

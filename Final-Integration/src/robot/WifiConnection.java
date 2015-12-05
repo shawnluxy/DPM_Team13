@@ -1,4 +1,13 @@
-/*
+/**
+*This class opens a wifi connection, waits for the data
+ * and then allows access to the data after closing the wifi socket.
+ * 
+ * It should be used by calling the constructor which will automatically wait for
+ * data without any further user command
+ * 
+ * Then, once completed, it will allow access to an instance of the Transmission
+ * class which has access to all of the data needed
+* 
 * @author Sean Lawlor
 * @date November 3, 2011
 * @class ECSE 211 - Design Principle and Methods
@@ -20,22 +29,18 @@ import java.net.Socket;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 
-/*
- * This class opens a wifi connection, waits for the data
- * and then allows access to the data after closing the wifi socket.
- * 
- * It should be used by calling the constructor which will automatically wait for
- * data without any further user command
- * 
- * Then, once completed, it will allow access to an instance of the Transmission
- * class which has access to all of the data needed
- */
 public class WifiConnection {
 	
 	private Transmission trans;
 	
 	private TextLCD LCD = LocalEV3.get().getTextLCD();
 	
+	/**
+	 * Default constructor
+	 * @param serverIP IP address of server
+	 * @param teamNumber Our team number is 13
+	 * @throws IOException
+	 */
 	public WifiConnection(String serverIP, int teamNumber) throws IOException {
 		LCD.clear();
 		
@@ -65,10 +70,17 @@ public class WifiConnection {
 		
 	}
 	
+	/**
+	 * Gets the transmission
+	 * @return Transmission
+	 */
 	public Transmission getTransmission() {
 		return this.trans;
 	}
 	
+	/**
+	 * Prints the transmission
+	 */
 	public void printTransmission() {
 		try {
 			LCD.clear();

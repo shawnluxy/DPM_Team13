@@ -8,30 +8,22 @@ import lejos.robotics.geometry.Point2D;
 /** 
  * The Navigator class provides all the methods to allow the robot to move and navigate through the map.
  * 
- * This version of the class was written for the purposes of a unit test to determine whether the robot
- * can find a path from point A to point B given new obstacle information along the way, travelling only along lines parallel
- * to the X and Y axes, (for the purposes of having more accurate odometry correction).
- * 
- * Therefore, it does not  actually use ultrasonic data (that will be a different test) to detect blocks, but will be given new block
- * information at various intervals, from an outside class. 
- * 
- * @version 2.0
+ * @version 3.0
  * @author Solvie Lee
  * 
  */
 
 public class Navigator {
-	private static final int SLOWER_ROTATE = 30, BUFFER_TIME = 500, ESCAPE_DIST = 30;
-	public static int DEFAULT_TIMEOUT_PERIOD = 20, FORWARD_SPEED = 200, HALF_SPEED = 100, ROTATE_SPEED = 50, DEG_ERR = 2, D = 15;
+	private static final int BUFFER_TIME = 500, FORWARD_SPEED = 200, HALF_SPEED = 100, DEG_ERR = 2;
 	private Odometer odo;
 	private EV3LargeRegulatedMotor leftMotor, rightMotor, sensorMotor;
-	private Point2D[] knownObstacles;
-	private boolean thereIsObject, thereIsObjectCloseish, thereIsObjectWithinD, objectColorSeen;
-	private int objectDist;
+	private boolean thereIsObject, thereIsObjectCloseish, thereIsObjectWithinD;
+	private double objectDist;
 	
 	/**
 	 * Default constructor
-	 * @param odo the odometer that will provide position data to the navigator.
+	 * @param odo the Odometer whose values are to be used for dead-reckoning.
+	 * @param sensorMotor the motor that controls the movement of the front sensors (light and ultrasonic)
 	 */
 	public Navigator(Odometer odo, EV3LargeRegulatedMotor sensorMotor){
 		this.odo = odo;
@@ -41,8 +33,7 @@ public class Navigator {
 		this.thereIsObject = false;
 		this.thereIsObjectCloseish= false;
 		this.thereIsObjectWithinD = false;
-		this.objectColorSeen = false;
-		this.objectDist = 255;
+		this.objectDist = 0;
 	}
 	
 	
@@ -83,8 +74,7 @@ public class Navigator {
 	 */
 	public boolean [] travelToWithAvoidance(double x, double y){
 		double currX, currY, trajTheta, distance;
-		boolean[] result= new boolean[2];
-
+		boolean[] result= new boolean[2]; //An array to store the values of whether the path was blocked from the get-go, and whether the path was blocked at some point along the journey.
 		// calculate the amount of theta to turn, and turn by that amount
 		currX = odo.getX();
 		currY = odo.getY();
@@ -92,27 +82,31 @@ public class Navigator {
 		turnTo(trajTheta, true);
 		
 		if (thereIsObjectWithinD) { //if there is an object right at the start.
-			result[0] = true; // object at start
-			result[1] = true;// object in path.
+			result[0] = true; // object at start.
+			result[1] = true;// object in path along journey.
 			return result;
 		}
-		// calculate the distance that needs to be traveled, and go that distance
+		// calculate the distance that needs to be traveled, and begin going that distance. Stop if the max distance has been reached, or if an object is too "close" to the sensor (As defined by ObjectDetector)
 		distance = Math.sqrt(Math.pow((y - currY), 2) + Math.pow((x - currX), 2));
 		leftMotor.setSpeed(FORWARD_SPEED);
 		rightMotor.setSpeed(FORWARD_SPEED);
-		// while the distance has not been fully reached, go forward until object is noticed.
 		boolean latch = true;
 		boolean stopped = false;
 		while ((Math.sqrt(Math.pow(odo.getX() - currX, 2) + Math.pow(odo.getY() - currY, 2)) < distance)) {
 				leftMotor.forward();
 				rightMotor.forward();
 				if(thereIsObject&& latch){
-					//to handle the angled object case.
-					double newdistance = objectDist-2.5;
+					// to handle the disappearing object case. If an object is detected "far away" as defined in ObjectDetector (60cm),
+					// Latch the value of how far that object was, and set that as the new "max" distance to travel, if it's closer than the 
+					// distance of the waypoint it was originally travelling to. 
+					double alreadyTravelledDist = Math.sqrt(Math.pow(odo.getX() - currX, 2) + Math.pow(odo.getY() - currY, 2));
+					double newdistance = alreadyTravelledDist+ objectDist -12;
 					if (newdistance<distance){
 						distance = newdistance;
 						stopped = true;
 					}
+					// This ensures that if an obstacle disappears from view due to the sensor position, the robot will still not travel far enough to 
+					// run into the obstacle.
 					Sound.beep();
 					Sound.beep();
 					latch=false;
@@ -149,11 +143,11 @@ public class Navigator {
 	 * and stop when it is a certain distance away from it.
 	 * @param left whether the robot turned left to avoid the obstacle
 	 */
-	public void travelUntilNoObstacle(boolean left){ //the boolean defines the empty path direction.
+	public void travelUntilNoObstacle(boolean left){
 		Sound.beepSequenceUp();
 		double currTheta = odo.getAng(), destAngle;
 		sensorMotor.setAcceleration(200);
-		//turn the sensormotor and the robot to the right direction
+		//Turn the sensormotor and the robot to the right direction
 		if (left){
 			Sound.beep();
 			Sound.beep();
@@ -173,7 +167,7 @@ public class Navigator {
 			turnTo(destAngle, true);	
 		}
 		
-		//go forward until there is no obstacle detected.
+		//Go forward until there is no obstacle detected.
 		setSpeeds(HALF_SPEED, HALF_SPEED);
 		leftMotor.forward();
 		rightMotor.forward();
@@ -186,6 +180,7 @@ public class Navigator {
 				break;
 		}
 		Sound.beepSequenceUp();
+		
 		//let the robot's body move past the obstacle before stopping.
 		try{ Thread.sleep(BUFFER_TIME*10);
 		} catch(InterruptedException e) {e.printStackTrace();}
@@ -205,7 +200,6 @@ public class Navigator {
 			turnTo(destAngle, true);	
 		}
 		
-		
 		//travel forward some distance
 		setSpeeds(HALF_SPEED, HALF_SPEED);
 		leftMotor.forward();
@@ -219,12 +213,12 @@ public class Navigator {
 				break;
 		}
 		Sound.beepSequenceUp();
+		
 		//let the robot's body move past the obstacle before stopping.
 		try{ Thread.sleep(BUFFER_TIME*10);
 		} catch(InterruptedException e) {e.printStackTrace();}
 		stopMotors();	
 		Sound.beepSequence();
-		
 		
 		// put sensors back
 		if (left){
@@ -237,7 +231,7 @@ public class Navigator {
 	}
 	
 	/**
-	 * This method turns the robot in place to face the specified destination heading. 
+	 * This method turns the robot in place to face the specified destination heading, in the optimal direction.
 	 * @param theta heading to turn to
 	 * @param stop whether motors should stop
 	 */
@@ -247,7 +241,7 @@ public class Navigator {
 		if (Math.abs(error)>DEG_ERR)
 			turn = true;
 		
-		while (turn){//changed from while Math.abs(error)> DEG_ERR
+		while (turn){
 			error = normalize(theta) - this.odo.getAng();
 			abserror = Math.abs(error);
 			
@@ -276,12 +270,18 @@ public class Navigator {
 
 	}
 	
+	/**
+	 * Helper method for the turnTo method that normalizes the angle.
+	 * @param deg the angle to normalize
+	 * @return normalized angle
+	 */
 	public double normalize(double deg){
 		double normal = deg%360;
 		if(normal<0)
 			normal+=360;
 		return normal;
 	}
+	
 	/**
 	 * Method to allow navigator to scan left and right for an empty path.
 	 * @return boolean array of whether there was an empty path found (first value) and whether the direction found was left (second value)
@@ -320,69 +320,38 @@ public class Navigator {
 			sensorMotor.rotate(90);
 		return info;
 	}
-	
-	/** 
-	 * Method to allow robot to travel backwards a set distance
-	 * @param distance amount to travel
+
+	/**
+	 * Method to allow the robot to travel backwards a set distance
+	 * @param distance to travel
 	 */
 	public void travelBackwards(double distance){
 		double currX, currY;
 		currX = odo.getX();
 		currY = odo.getY();
 		while(Math.sqrt(Math.pow(odo.getX() - currX, 2) + Math.pow(odo.getY() - currY, 2)) < distance){
-			this.setSpeeds(-HALF_SPEED,-HALF_SPEED);
-		}
+			this.setSpeeds(-FORWARD_SPEED,-FORWARD_SPEED);}
 		this.setSpeeds(0,0);
 		
 	}
 	
 	/**
-	 * Method to allow robot to travel forwards a set distance
-	 * @param distance distance to travel
+	 * Method to allow the robot to travel forwards a set distance
+	 * @param distance to travel
 	 */
-	public void travelForwards(int distance){
+	public void travelForwards(double distance){
 		double currX, currY;
 		currX = odo.getX();
 		currY = odo.getY();
 		while(Math.sqrt(Math.pow(odo.getX() - currX, 2) + Math.pow(odo.getY() - currY, 2)) < distance){
-			this.setSpeeds(HALF_SPEED, HALF_SPEED);
-			if (thereIsObject)
-				break;
-		}
+			this.setSpeeds(FORWARD_SPEED,FORWARD_SPEED);}
 		this.setSpeeds(0,0);
-		
 	}
 	
 	/**
-	 * A method to travel forward by at least a certain distance, but more if there is an object next to it
-	 * @param escapeDist minimum distance to go.
-	 */
-	public void travelForwards2(int escapeDist){
-		double currX, currY;
-		currX = odo.getX();
-		currY = odo.getY();
-		
-		setSpeeds(HALF_SPEED, HALF_SPEED);
-		leftMotor.forward();
-		rightMotor.forward();
-		try {Thread.sleep(BUFFER_TIME);
-		} catch (InterruptedException e) {e.printStackTrace();}
-		while (Math.sqrt(Math.pow(odo.getX() - currX, 2) + Math.pow(odo.getY() - currY, 2)) < escapeDist){
-			leftMotor.forward();
-			rightMotor.forward();
-			if (!thereIsObject)
-				break;
-		}
-		//let the robot's body move past the obstacle before stopping.
-		try{ Thread.sleep(BUFFER_TIME*10);
-		} catch(InterruptedException e) {e.printStackTrace();}
-		stopMotors();	
-	}
-	
-	/**
-	 * Method to set the speed of the motors
-	 * @param lSpd left motor speed
-	 * @param rSpd right motor speed
+	 * Method to set motors going at the specified speed and direction
+	 * @param lSpd left motor speed. Positive if forwards, negative if backwards.
+	 * @param rSpd right motor speed. Positive if forwards, negative if backwards.
 	 */
 	public void setSpeeds(float lSpd, float rSpd) {
 		this.leftMotor.setSpeed(lSpd);
@@ -396,53 +365,7 @@ public class Navigator {
 		else
 			this.rightMotor.forward();
 	}
-	
-	/**
-	 * Calculates the destination heading based on the current point coordinates and the destination point coordinates.
-	 * @param x X coordinates of destination
-	 * @param y Y coordinates of destination
-	 * @param currX current X coordinates (starting point)
-	 * @param currY current Y coordinates
-	 * @return a heading angle in degrees.
-	 */
-	public double getArcTan(double x, double y, double currX, double currY) {
-		double value, xdiff, ydiff;
-		xdiff = x - currX;
-		ydiff = y - currY;
-		if (ydiff > 0) {
-			if (xdiff > 0)
-				value = 90 - Math.toDegrees(Math.atan(ydiff / xdiff));
-			else
-				value = Math.toDegrees(Math.atan(Math.abs(ydiff / xdiff))) - 90;
-		} else {
-			if (xdiff > 0)
-				value = 90 + Math.toDegrees(Math.atan(Math.abs((ydiff / xdiff))));
-			else
-				value = -90 - Math.toDegrees(Math.atan(ydiff / xdiff));
-		}
 
-		return value;
-	}
-		
-	/**
-	 * Allows the robot to turn Clockwise.
-	 */
-	public void turnClockwise(){
-		leftMotor.setSpeed(SLOWER_ROTATE);
-		rightMotor.setSpeed(SLOWER_ROTATE);
-		leftMotor.forward();
-		rightMotor.backward();
-	}
-	
-	/**
-	 * Allows the robot to turn counter clockwise.
-	 */
-	public void turnCounterClockwise(){
-		leftMotor.setSpeed(SLOWER_ROTATE);
-		rightMotor.setSpeed(SLOWER_ROTATE);
-		leftMotor.backward();
-		rightMotor.forward();
-	}
 	
 	/**
 	 * Stops the motors
@@ -465,11 +388,13 @@ public class Navigator {
 			this.thereIsObjectCloseish =info[1];
 		if (update[2])
 			this.thereIsObjectWithinD = info[2];
-		if (update[3])
-			this.objectColorSeen = info[3];
 	}
 	
-	public void setObjectDist(int dist){
+	/**
+	 * Method to allow the ObjectDetector to tell the Navigator how far an obstacle is.
+	 * @param dist how far an obstacle is
+	 */
+	public void setObjectDist(double dist){
 		this.objectDist = dist;
 	}
 	

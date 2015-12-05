@@ -1,4 +1,7 @@
-/*
+/**
+ * 
+ * Enum that defines the Start Corner
+ * 
 * @author Sean Lawlor
 * @date November 3, 2011
 * @class ECSE 211 - Design Principle and Methods
@@ -19,6 +22,14 @@ public enum StartCorner {
 	
 	private int id, x, y;
 	private String name;
+	
+	/**
+	 * Default constructor
+	 * @param id
+	 * @param x
+	 * @param y
+	 * @param name
+	 */
 	private StartCorner(int id, int x, int y, String name) {
 		this.id = id;
 		this.x = x;
@@ -26,26 +37,50 @@ public enum StartCorner {
 		this.name = name;
 	}
 	
+	/**
+	 * Method that returns the name of the corner as a String
+	 */
 	public String toString() {
 		return this.name;
 	}
 	
+	/**
+	 * Method that returns coordinates
+	 * @return array of integers that define the coordinates
+	 */
 	public int[] getCooridinates() {
 		return new int[] {this.x, this.y};
 	}
 	
+	/**
+	 * Method that returns the X-pos
+	 * @return integer that defines x-pos
+	 */
 	public int getX() {
 		return this.x;
 	}
 	
+	/**
+	 * Method that returns y pos
+	 * @return y pos integer
+	 */
 	public int getY() {
 		return this.y;
 	}
 	
+	/**
+	 * Method that returns the id
+	 * @return integer that represents the id
+	 */
 	public int getId() {
 		return this.id;
 	}
 	
+	/**
+	 * Method that returns a StartCorner
+	 * @param cornerId to look up
+	 * @return the StartCorner
+	 */
 	public static StartCorner lookupCorner(int cornerId) {
 		for (StartCorner corner : StartCorner.values())
 			if (corner.id == cornerId)

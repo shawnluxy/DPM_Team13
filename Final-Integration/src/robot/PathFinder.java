@@ -64,9 +64,6 @@ public class PathFinder {
 		}
 		
 		
-		//TODO: modify travel to method so that if the destination it wants to travel to is within a centimeter of the current angle and whatever
-		//you stay put.
-		
 		boolean [] pathBlocked1, pathBlocked2;
 		if (!(((odo.getX()<x+DEG_ERR)&&(odo.getX()>x-DEG_ERR)) && ((odo.getY()<y+DEG_ERR)&&(odo.getY()>y-DEG_ERR)))){ //While we've not reached the destination, this happens. //TODO: modify so that there's more room for error.
 			//travel to the first point. If we try to travel there and don't reach the correct place, the same method is called again. 
@@ -102,7 +99,6 @@ public class PathFinder {
 						this.backOutOfCorner();
 						obstacles = findPathTo(x,y, obstacles);
 					}
-					//TODO: Check which direction it is facing when it gets to this point. 
 				}
 				obstacles = findPathTo(x, y, obstacles);	
 			}
@@ -114,7 +110,7 @@ public class PathFinder {
 					boolean emptyFound[] = new boolean[2];
 					emptyFound = navi.scan();
 					
-					if (emptyFound[0]){ //TODO: make sure to never try to retrace your steps and get caught in an infinite loop
+					if (emptyFound[0]){ 
 						//escape
 						this.escapeCorner(emptyFound[1]);
 						obstacles = findPathTo(x, y, obstacles);
@@ -149,7 +145,6 @@ public class PathFinder {
 	 * Method to back out of a corner case
 	 */
 	private void backOutOfCorner(){
-		//Sound.beepSequence();
 		boolean[] emptyFound = new boolean[2];
 		navi.travelBackwards((int) BACK_DIST);
 		emptyFound = navi.scan();
@@ -162,7 +157,7 @@ public class PathFinder {
 
 	
 	/**
-	 * This method is for testing purposes, will likely be removed in final integration.
+	 * This method is to set a String flag on the Odometer for testing purposes.
 	 * @param i waypoint index
 	 */
 	private void setOdoFlag(int i){

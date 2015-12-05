@@ -42,49 +42,31 @@ public class Odometer implements TimerListener {
 	 * Default constructor
 	 * @param leftMotor the left motor
 	 * @param rightMotor the right motor
-	 * @param INTERVAL the interval of time we want the timer to time out at.
-	 * @param autostart whether the timer should autostart or not.
 	 */
 	public Odometer(EV3LargeRegulatedMotor leftMotorO, EV3LargeRegulatedMotor rightMotorO) {
 		this.leftMotor = leftMotorO;
 		this.rightMotor = rightMotorO;
 
-		// default values, modify for your robot
-
-		this.leftRadius = 2.1;
-		this.rightRadius = 2.1;
+		this.leftRadius = 2.09;
+		this.rightRadius = 2.09;
 		this.track = 16.5;
-
-		/*		convention used: 
-		 *	robot facing the y axis is at theta = 90; 
-		 *	rotating from x axis to y axis (counter clockwise) 
-		 * 	means theta is rising
-		 * 
-		 */
 		this.x = 0.0;
 		this.y = 0.0;
 		this.theta = 90.0;
 		this.oldDH = new double[2];
 		this.dDH = new double[2];
 
-		/*
-		//creation of the correction, might need to run on a different thread???
-		final OdometerCorrection correctionOdo = new OdometerCorrection(this);
-		(new Thread(){
-			public void run(){
-				correctionOdo.run();
-			}
-		}).start(); */
-
 		//start the timer
 		this.timer = new Timer((INTERVAL <= 0) ? INTERVAL : DEFAULT_TIMEOUT_PERIOD, this);
 		this.timer.start();
 	}
 	
+	/**
+	 * Method to commence Odometery correction
+	 * @param detector the Object Detector whose values are to be used for odometry correction. 
+	 */
 	public void startOdoCorrection(ObjectDetector detector){
-		//creation of the correction, might need to run on a different thread???
 		final OdometerCorrection correctionOdo = new OdometerCorrection(this, detector);
-		
 		(new Thread(){
 			public void run(){
 				correctionOdo.run();

@@ -11,18 +11,18 @@ import lejos.utility.Timer;
  * The object detector class is responsible for using the ultrasonic sensor and the light sensor to detect
  * objects in front of the robot. 
  * 
- * @version 1.0
- * @author Solvie Lee, Shawn Lu
+ * @version 2.5
+ * @author Shawn Lu, Solvie Lee
  *
  */
 
 public class ObjectDetector implements TimerListener {
 	
 	public static final int errorMargin = 2, DEFAULT_INTERVAL = 25, offFactor = 20;
-	private static final int OBJECT_FAR = 50, OBJECT_CLOSE = 5, OBJECT_CLOSEISH = 15, MAX_RANGE = 120;
+	private static final int OBJECT_FAR = 60, OBJECT_CLOSE = 6, OBJECT_CLOSEISH = 15, MAX_RANGE = 120;
 	private boolean objectDetected, objectCloseish, objectClose, objectColorSeen, flagDetected;
 	private SampleProvider usValue, colorSensor, colorSensor2;
-	private int  distance, realdistance, lastcolor2, deltacolor2, filter, filter_out = 10;
+	private int realdistance, lastcolor2, deltacolor2, filter, filter_out = 10;
 	private float[] usData, colorData, colorData2;
 	private int deltarealdis;
 	private int lastdis;
@@ -32,18 +32,19 @@ public class ObjectDetector implements TimerListener {
 	
 	/**
 	 * Default constructor
-	 * @param navi the navigator
-	 * @param usValue the SampleProvider for ultrasonic values
-	 * @param usData the ultrasonic values from SampleProvider
-	 * @param colorValue the SampleProvider for color values
-	 * @param colorData the color values from SampleProvider
-	 * @param autostart whether the timer should autostart
+	 * @param navi the Navigator 
+	 * @param usValue the ultrasonic sensor
+	 * @param usData the data from the ultrasonic sensor
+	 * @param colorSensor the forwards facing color sensor
+	 * @param colorData the data from the forwards facing color sensor
+	 * @param colorSensor2 the downwards facing color sensor
+	 * @param colorData2 the data from the downwards facing color sensor
+	 * @param autostart whether the ObjectDetector should autostart
 	 */
 	public ObjectDetector(Navigator navi, SampleProvider usValue, float[] usData,
 			SampleProvider colorSensor, float[] colorData, SampleProvider colorSensor2, float[] colorData2, boolean autostart){
 		this.objectDetected = false;
 		this.objectCloseish = false;
-		this.distance = MAX_RANGE;
 		this.usValue = usValue;
 		this.usData = usData;
 		this.colorSensor = colorSensor;
@@ -97,8 +98,8 @@ public class ObjectDetector implements TimerListener {
 	
 	
 	/**
-	 * 
-	 * @return raw data
+	 * A method to get the raw distance detected by the ultrasonic sensor.
+	 * @return raw distance in cm.
 	 */
 	public int getdistance(){
 		synchronized (this){
@@ -116,45 +117,41 @@ public class ObjectDetector implements TimerListener {
 	 * This method allows the object detector to tell the navigator the state of the field of vision.
 	 * 
 	 * @param farDist Distance within which the object detector will say an object has been detected
+	 * @param closeishDist Distance within which the object detector will say that an object is somewhat close ("closeish")
 	 * @param closeDist Distance within which the object detector will say an object is close
 	 */
 	public void updateNavi(double farDist, double closeishDist, double closeDist){
-		//notify navi if object 
 		if (realdistance <= farDist)
 			objectDetected = true;
 		else
 			objectDetected = false;
-		//notify navi if object closeish 
 		if (realdistance <= closeishDist)
 			objectCloseish = true;
 		else
 			objectCloseish = false;
-		//notify navi if object is within closeDist away
 		if(realdistance<= closeDist)
 			objectClose = true;
 		else
 			objectClose = false;
-		
+		//notify the Navigator of the above information
 		navi.setDetectionInfo(new boolean[]{objectDetected, objectCloseish, objectClose, false},new boolean[]{true, true, true, false});
 		navi.setObjectDist(realdistance);
 	}
 	
 	/**
-	 * This method allows outside classes to get all the information from the objectDetector, whether an object was seen, whether its color was seen, etc.
-	 * @param status the array of boolean values to be filled with the information requested. 
+	 * This method allows outside classes to get all the information from the objectDetector, whether an object was seen, and whether it's close.
+	 * @return array of boolean values that say (index 0) if an object was detected in front of the robot, and (index 1), if the object detected is close
 	 */
 	public boolean[] getVisionStatus(){
 		boolean[] status = new boolean[4];
 		status[0] = objectDetected;
 		status[1] = objectClose;
-		status[2] = objectColorSeen;
-		status[3] = flagDetected;
 		return status;
 	}
 	
 	/**
-	 * Color sensor in the front
-	 * @return
+	 * Method that returns the color value from the front color sensor
+	 * @return an array of integers that define the color value
 	 */
 	public int[] getcolor1(){
 		synchronized (this){
@@ -165,8 +162,8 @@ public class ObjectDetector implements TimerListener {
 	}
 	
 	/**
-	 * Color sensor in the back
-	 * @return
+	 * Method that returns the color value from the back color sensor
+	 * @return an integer value that defines the color value.
 	 */
 	public int getcolor2(){
 		synchronized (this){
@@ -175,8 +172,12 @@ public class ObjectDetector implements TimerListener {
 			return color;
 		}
 	}
-	
-	//light blue:1 ; red:2 ; yellow:3 ; white:4 ; dark blue:5 
+
+	/**
+	 * Method that maps a color number (as defined light blue:1 ; red:2 ; yellow:3 ; white:4 ; dark blue:5 )
+	 * to the detected color of an object
+	 * @return integer value of a color
+	 */
 	public int getcolornumber(){
 		synchronized (this){
 			int all=this.getcolor1()[0]+this.getcolor1()[1]+this.getcolor1()[2];
@@ -199,8 +200,8 @@ public class ObjectDetector implements TimerListener {
 	}
 	
 	/**
-	 * Get filtered distance value
-	 * @return
+	 * Gets the filtered real distance value
+	 * @return integer value of the real distance in cm.
 	 */
 	public int getrealdis(){
 		synchronized (this){
@@ -209,13 +210,17 @@ public class ObjectDetector implements TimerListener {
 	
 	/**
 	 * Get delta value of second color sensor
-	 * @return
+	 * @return an integer value of the delta of the color sensor value.
 	 */
 	public int getdeltacolor2(){
 		synchronized (this){
 			return deltacolor2;}
 	}
 	
+	/**
+	 * Get delta value of the real distance detected by ultrasonic
+	 * @return an integer value of the delta of the real distance value in cm.
+	 */
 	public int getdeltarealdis(){
 		synchronized (this){
 			return deltarealdis;}

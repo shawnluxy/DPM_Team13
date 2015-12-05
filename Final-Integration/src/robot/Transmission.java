@@ -1,4 +1,13 @@
-/*
+/**
+* 
+* Skeleton class to hold datatypes needed for final project
+* 
+* Simply all public variables so can be accessed with 
+* Transmission t = new Transmission();
+* int d1 = t.d1;
+* 
+* and so on...
+* 
 * @author Sean Lawlor
 * @date November 3, 2011
 * @class ECSE 211 - Design Principle and Methods
@@ -12,17 +21,6 @@
 * Changed parameters for F2015 competition
 */
 package robot;
-
-/*
- * Skeleton class to hold datatypes needed for final project
- * 
- * Simply all public variables so can be accessed with 
- * Transmission t = new Transmission();
- * int d1 = t.d1;
- * 
- * and so on...
- * 
- */
 
 public class Transmission {
 	
@@ -40,7 +38,10 @@ public class Transmission {
 	public int flagType;
 	public int opponentFlagType;
 	
-	//not taking in account the changes in corner
+	/**
+	 * Method to transform the grid's coordinates such that everything is relative to the robot starting at (0,0). 
+	 * @param gridSize the size of the game grid.
+	 */
 	public void coordinatesTransfo(int gridSize){
 		gridSize-=2;
 		switch(startingCorner.getId()){
@@ -136,42 +137,104 @@ public class Transmission {
 		}
 	}
 	
+	/**
+	 * Method that returns the StartCorner
+	 * @return StartCorner
+	 */
 	public StartCorner getStartingCorner() {
 		return this.startingCorner;
 	}
+	/**
+	 * Method that returns the x coordinate of the bottom left point of the Home Zone. 
+	 * @return x coordinate of the bottom left point of Home Zone
+	 */
 	public int getHomeZoneBL_X() {
 		return this.homeZoneBL_X;
 	}
+	/**
+	 * Method that returns the y coordinate of the bottom left point of the Home Zone.
+	 * @return y coordinate of the bottom left point of the Home Zone
+	 */
 	public int getHomeZoneBL_Y() {
 		return this.homeZoneBL_Y;
 	}
+	
+	/**
+	 * Method that returns the x coordinate of the top right point of the Home Zone
+	 * @return the x coordinate of the top right point of the Home Zone
+	 */
 	public int getHomeZoneTR_X() {
 		return this.homeZoneTR_X;
 	}
+	
+	/**
+	 * Method that returns the y coordinate of the top right point of the Home Zone
+	 * @return  the y coordinate of the top right point of the Home Zone
+	 */
 	public int getHomeZoneTR_Y() {
 		return this.homeZoneTR_Y;
 	}
+	
+	/**
+	 * Method that returns the x coordinate of the bottom left point of the Opponent's Home Zone.
+	 * @return x coordinate of the bottom left point of Opponent Zone
+	 */
 	public int getOpponentHomeZoneBL_X() {
 		return this.opponentHomeZoneBL_X;
 	}
+	
+	/**
+	 * Method that returns the y coordinate of the bottom left point of the Opponent's Home Zone.
+	 * @return y coordinate of the bottom left point of Opponent Zone
+	 */
 	public int getOpponentHomeZoneBL_Y() {
 		return this.opponentHomeZoneBL_Y;
 	}
+	
+	/**
+	 * Method that returns the x coordinate of the top right point of the Opponent Zone
+	 * @return the x coordinate of the top right point of the Opponent Zone
+	 */
 	public int getOpponentHomeZoneTR_X() {
 		return this.opponentHomeZoneTR_X;
 	}
+	
+	/**
+	 * Method that returns the y coordinate of the top right point of the Opponent Zone
+	 * @return the y coordinate of the top right point of the Opponent Zone
+	 */
 	public int getOpponentHomeZoneTR_Y() {
 		return this.opponentHomeZoneTR_Y;
 	}
+	
+	/**
+	 * Method that returns the x coordinate of the Drop Zone
+	 * @return x coordinate of the Drop Zone
+	 */
 	public int getDropZone_X() {
 		return this.dropZone_X;
 	}
+	
+	/**
+	 * Method that returns the y coordinate of the Drop Zone
+	 * @return y coordinate of the Drop Zone
+	 */
 	public int getDropZone_Y() {
 		return this.dropZone_Y;
 	}
+	
+	/**
+	 * Method that returns the flag type to search for as an int
+	 * @return int value of flag type.
+	 */
 	public int getFlagType() {
 		return this.flagType;
 	}
+	
+	/**
+	 * Method that returns the flag type that the opponent is searching for
+	 * @return int value of flag type
+	 */
 	public int getOpponentFlagType() {
 		return this.opponentFlagType;
 	}
